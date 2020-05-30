@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <title>Code Complexity Visualiser</title>
+
+  <!-- Chart vue.js -->
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+  <!-- Tree d3.js -->
+  <!-- load the d3.js library -->	
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
+  <style>
+        .node {
+            cursor: pointer;
+        }
+        .node circle {
+        fill: #fff;
+        stroke: steelblue;
+        stroke-width: 3px;
+        }
+        .node text {
+        font: 12px sans-serif;
+        }
+        .link {
+        fill: none;
+        stroke: #ccc;
+        stroke-width: 2px;
+        }
+    </style>
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style>
+        th,td {
+            text-align: center;
+            vertical-align: middle;
+        }
+    </style>
+
+    <!-- Custom fonts for this template -->
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700,300italic,400italic,700italic" rel="stylesheet" type="text/css">
+
+</head>
+
+<body>
+
+<!-- Navigation -->
+    <nav>
+        <div>
+            <table style="width: 100%;">
+                <tr>
+                    <td style="text-align: left;">
+                        <a href="https://www.swinburne.edu.au/"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcSfp0MLt46S9-uMqBcLpGcCR6BlLcGmTD_saiVCiSsTMAPB8tEM&usqp=CAU"></a>
+                    </td>
+                    <td style="text-align: right;">
+                        <a class="navbar-brand" href="#">ICT90004, Applied Research Project, Semester 1 2020</a>
+                        <br>
+                        <a class="btn btn-primary" href="#">Project Team</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="masthead text-white text-center" style="background-color: #7FB3D5;">
+        <div class="container">
+            <div class="row">
+                <div class="col-xl-9 mx-auto">
+                    <h1 class="mb-5">Code Complexity Visualiser</h1>
+                </div>
+                <div class="col-xl-9 mx-auto">
+                    <h4>Analysing JavaScript codes, and generating a visual analytics report</h4>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Result -->
+    <div class="accordion" id="accordionExample">
+        <!-- Cyclometric Complexity -->
+        <div class="card">
+          <div class="card-header" id="headingOne" style="height: 50px;">
+            <h2 class="mb-0">
+              <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                Definition of Cyclometric Complexity
+              </button>
+            </h2>
+          </div>
+          <center>
+          <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordionExample">
+            <div class="card-body">
+                "Cyclometric Complexity is a software metric that provides a quantitative measure of the logical complexity of a program" 
+                <a href="https://pdf.sciencedirectassets.com/277811/1-s2.0-S1877042813X00230/1-s2.0-S1877042813020077/main.pdf?X-Amz-Security-Token=IQoJb3JpZ2luX2VjEGUaCXVzLWVhc3QtMSJHMEUCICtUHo0qzee10u9jXhx9VppYnxid11r4%2F7qZx%2BILc6TiAiEAjyPraCbAHlIHa9ETcMLOcWvSbB3R%2FlhvEyEtStmEv%2F0qvQMIvv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARADGgwwNTkwMDM1NDY4NjUiDEkxKDjpStSfNT7WLCqRAwqmcX3rbq05yn6%2F4ua8zNKqBx62nj6m6Y9j3HarYv86ghrIHs0qoTeSzo7W2E%2BpadG7bcnMMxvbUxn8BEItMCB2hODm%2BceFlxg2XUFtn12b%2Fy18ieBghyeWs3q4Jl5S5MuVEyeABKaiCoARrPGIgo%2FhubmMk9M7w%2F6%2BoYbbSK8lnckYElpuYumncJI3yznnThDwvYlhRjjIlfLa%2Bj5lT8l09aMCV6Lk84v%2FAIJ30XeoluygQCJwU93dUhnbk98OHIFaubutsirXU6q7NlsYw%2Bm7SQ6IB0byQcFo9G%2Bc50iUzL2uQttJeJwAsFUAHhvqHwYhmgTZ3ncSiRvmikJKFZYO3zx7bn1qFrepR%2FVelBCvxy7ESke98asPAJOBsg3R6bxEkyrE%2BGDqT1vG4V9vV6l%2Bgd%2FtgulJ1oBN19cLcmzkrL3bh5FqY3zxg%2FWJXaQxnujv9y690QFSJBe3Z8lbmHuFKVp3bhoCCWIHcBuOdvYvrKOx%2F9wYjY0vkPRb86hnBKA0P0rxFNuJqUXDykRs%2F3YhMKTGufYFOusBQw6fl4c2J%2Bcepb0OIIiOh6T8SMXVT8NIE3dJ0d%2BDUS7TQ2uctWhLSQbQsYSAHeI%2BQwS0MgUXq3PYWIgTpI5E3TY7YM%2BGIT9zYXk1s1yl%2BVhMqvDu%2Bl%2FEWCs3VW1r99aaZWikb4hZaSFRdP91HCQhNNJK6EBsEQxS2GRgupX3V8%2BHEbGc8tdV%2Bc%2BBgH6E39F5C7w301%2BEnFJaIFgjhjhg6EpyUl6T6YlE2DsWj1vote8FAhGd07ZMHM6NoGicxsJUOISvFn0K6YcWpoJ5fjPqiMOV%2BT4JN64Fk40VCV5MxcVepqgxmGYj1Ddx1w%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20200527T135154Z&X-Amz-SignedHeaders=host&X-Amz-Expires=300&X-Amz-Credential=ASIAQ3PHCVTY5LJ5HFOO%2F20200527%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=44582352a5484a8cb0ecd3bfa331b0ed6104908f817b2937138feddc1ff6a6eb&hash=9b311d971ed4b389b42890744d167a36bf00712068dd4bc61a0643745de558f5&host=68042c943591013ac2b2430a89b270f6af2c76d8dfd086a07176afe7c76c2c61&pii=S1877042813020077&tid=spdf-d6be9bca-8920-48cc-ac87-4bab410ecd86&sid=c0c91f0c96d4074f5f0b3544f351e827301agxrqa&type=client&fbclid=IwAR2kCDv4UvOwipc5Rw2A4c-eTR7plzGaEO79zNUPYZk8W_ymY2r4NqZYEEA">
+                    (Pressman, 2001)</a>
+                <table border="1" align="center" style="width: 900px;" class="table table-bordered table-hover">
+                    <thead class="table-info">
+                    <tr>
+                        <th scope="col">Complexity Number</th>
+                        <th scope="col">Meaning</th>
+                        <th scope="col">Risk Level</th>
+                    </tr>
+                    </thead>
+                    <tr>
+                        <td scope="row">1-10</td>
+                        <td>A simple program</td>
+                        <td>Without Much Risk</td>
+                    </tr>
+                    <tr>
+                        <td scope="row">11-20</td>
+                        <td>More Complex</td>
+                        <td>Moderate Risk</td>
+                    </tr>
+                    <tr>
+                        <td scope="row">21-50</td>
+                        <td>Complex</td>
+                        <td>High Risk</td>
+                    </tr>
+                    <tr>
+                        <td scope="row">Greater than 50</td>
+                        <td>Untestable program</td>
+                        <td>Very High Risk</td>
+                    </tr>
+                </table>
+                Table: the complexity number and corresponding meaning 
+                <a href="https://resources.sei.cmu.edu/asset_files/Handbook/1997_002_001_16523.pdf?fbclid=IwAR0IBaPF8nNCRMTSRVAq4n8zunlD0x8m1-IK1QVsBCjnnbPBSVM93YtD1PU">
+                (Software Engineering Institute Carnegie Mellon University, 1997)</a>
+            </div>
+          </div>
+        </center>
+        </div>
+
+        <!-- CC Result -->
+        <div class="card">
+          <div class="card-header" id="headingTwo" style="height: 50px;">
+            <h2 class="mb-0">
+              <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                Cyclometric Complexity Result
+              </button>
+            </h2>
+          </div>
+          <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample">
+            <div class="card-body">
+                <!-- Table inside -->
+                <section class="showcase">
+                    <div class="container-fluid p-0">
+                    <div class="row no-gutters">
+                        
+                        <div class="col-lg-6 order-lg-2 my-auto showcase-text">
+                            <center>
+                            <p>File name: {{fileName}}</p>
+                            <table border="1" align="center" style="width: 500px;" class="table table-bordered table-hover">
+                                <thead class="table-info">
+                                <tr>
+                                    <th scope="col">Function</th>
+                                    <th scope="col">Complexity Number</th>
+                                    <th scope="col">Risk Level</th>
+                                </tr>
+                                </thead>
+                                {% for item in ccList %}
+                                <tr>
+                                    <td>{{item.get("function")}}</td>
+                                    <td>{{item.get("cc_no")}}</td>
+                                    <td>{{item.get("risk")}}</td>
+                                </tr>
+                                {% endfor %}
+                                <tr>
+                                    <th>Entire file (Average)</th>
+                                    <td>{{cc_avg}}</td>
+                                    <td>{{risk_avg}}</td>
+                                </tr>   
+                            </table>
+                            </center>
+                        </div>
+                        <div class="col-lg-6 order-lg-1 my-auto showcase-text">
+                            <div id="chart">
+                            </div>
+                            <script>
+                                var options = {
+                                  series: [{
+                                  name: 'Complexity Number',
+                                  type: 'column',
+                                  data: [
+                                    {% for item in values %}
+                                    "{{ item }}",
+                                    {% endfor %}
+                                  ]
+                                }, {
+                                  name: 'Entire File(Avg)',
+                                  type: 'line',
+                                  data: [
+                                    {% for item in line_values %}
+                                    "{{ item }}",
+                                    {% endfor %}
+                                  ]
+                                }],
+                                  chart: {
+                                  height: 350,
+                                  type: 'line',
+                                },
+                                stroke: {
+                                  width: [0, 4]
+                                },
+                                dataLabels: {
+                                  enabled: true,
+                                  enabledOnSeries: [1]
+                                },
+                                labels: [
+                                    {% for item in labels %}
+                                    "{{ item }}",
+                                    {% endfor %}
+                                ],
+                                xaxis: {
+                                  type: 'category'
+                                },
+                                yaxis: [{
+                                  title: {
+                                    text: 'Complexity Number',
+                                  },
+                                
+                                }]
+                                };
+                        
+                                var chart = new ApexCharts(document.querySelector("#chart"), options);
+                                chart.render();
+                            </script>
+                        </div>
+                    </div>
+                    </div>
+                </section>
+            </div>
+          </div>
+        </div>
+
+        <!-- Function Details -->
+        <div class="card">
+          <div class="card-header" id="headingThree" style="height: 50px;">
+            <h2 class="mb-0">
+              <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                Function Details
+              </button>
+            </h2>
+          </div>
+          <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionExample">
+            <div class="card-body">
+                <!-- Table inside -->
+                <section class="showcase">
+                    <div class="container-fluid p-0">
+                    <div class="row no-gutters">
+                        
+                        <div class="col-lg-6 order-lg-1 my-auto showcase-text">
+                            <center>
+                            <table border="1" align="center" class="table table-bordered table-hover">
+                                <thead class="table-info">
+                                <tr>
+                                    <th scope="col">Function</th>
+                                    <th scope="col">Number of lines</th>
+                                    <th scope="col">Start Line</th>
+                                    <th scope="col">End Line</th>
+                                    <th scope="col">Number of Variables</th>
+                                    <th scope="col">Parameter</th>
+                                </tr>
+                                </thead>
+                                {% for item in fn_details %}
+                                <tr>
+                                    <td>{{item.get("fnName")}}</td>
+                                    <td>{{item.get("noOfLine_total")}}</td>
+                                    <td>{{item.get("startLine")}}</td>
+                                    <td>{{item.get("endLine")}}</td>
+                                    <td>{{item.get("noOfVars")}}</td>
+                                    <td>{{item.get("pars")}}</td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+                            </center>
+                        </div>
+                        <div class="col-lg-6 order-lg-2 my-auto showcase-text">
+                            <div id="chart2">
+                            </div>
+                            <script>
+                               var options = {
+                                series: [{
+                                data: [
+                                    {% for item in fn_values %}
+                                    "{{ item }}",
+                                    {% endfor %}
+                                ]
+                                }],
+                                chart: {
+                                type: 'bar',
+                                height: 350
+                                },
+                                plotOptions: {
+                                bar: {
+                                    horizontal: true,
+                                }
+                                },
+                                dataLabels: {
+                                enabled: false
+                                },
+                                xaxis: {
+                                categories: [
+                                    {% for item in fn_labels %}
+                                    "{{ item }}",
+                                    {% endfor %}
+                                ],
+                                }
+                                };
+                        
+                                var chart = new ApexCharts(document.querySelector("#chart2"), options);
+                                chart.render();
+                            </script>
+                        </div>
+                    </div>
+                    </div>
+                </section>
+            </div>
+          </div>
+        </div>
+
+        <!-- Function Conditions Details-->
+        <div class="card">
+            <div class="card-header" id="headingFour" style="height: 50px;">
+                <h2 class="mb-0">
+                <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                    Conditions Details
+                </button>
+                </h2>
+            </div>
+            <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#accordionExample">
+                <div class="card-body">
+                    <center>
+                        <table border="1" align="center" class="table table-bordered table-hover">
+                            <thead class="table-info">
+                            <tr>
+                                <th scope="col" rowspan="2">Function</th>
+                                <th scope="col" colspan="4">Conditions</th>
+                            </tr>
+                            <tr>
+                                <th scope="col">if</th>
+                                <th scope="col">switch</th>
+                                <th scope="col">for</th>
+                                <th scope="col">while</th>
+                            </tr>
+                            </thead>
+                            {% for item in fn_details %}
+                            <tr>
+                                <td>{{item.get("fnName")}}</td>
+                                <td>{{item.get("conditionCount").get("if")}}</td>
+                                <td>{{item.get("conditionCount").get("switch")}}</td>
+                                <td>{{item.get("conditionCount").get("for")}}</td>
+                                <td>{{item.get("conditionCount").get("while")}}</td>
+                            </tr>
+                            {% endfor %}
+                        </table>
+                    </center>
+                </div>
+            </div>
+        </div>
+
+        <!-- Function Nesting Level -->
+        <div class="card">
+            <div class="card-header" id="headingFive" style="height: 50px;">
+                <h2 class="mb-0">
+                <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                    Function Nesting Level
+                </button>
+                </h2>
+            </div>
+            <div id="collapseFive" class="collapse" aria-labelledby="headingFive" data-parent="#accordionExample">
+                <div class="card-body">
+                    <center>
+                        <table border="1" align="center" style="width: 500px;" class="table table-bordered table-hover">
+                            <thead class="table-info">
+                            <tr>
+                                <th style="width: 200px;" rowspan="2">Function</th>
+                                <th colspan="3">Nested Details</th>
+                            </tr>
+                            <tr>
+                                <th style="width: 100px;">Condition</th>
+                                <th style="width: 100px;">Start Line</th>
+                                <th style="width: 100px;">Nested Level</th>
+                            </tr>
+                            </thead>
+                            {% for item in fn_details %}
+                            <tr>
+                                <td>{{item.get("fnName")}}</td>
+                                <td colspan="3" style="padding: 0;">
+                                    <table>
+                                        {% for key in item.get("nestedList") %}
+                                        <tr>
+                                            <td style="width: 100px;">{{key.get("condition")}}</td>
+                                            <td style="width: 100px;">{{key.get("start line")}}</td>
+                                            <td style="width: 100px;">{{key.get("nested level")}}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </table>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </table>
+                    </center>
+                </div>
+            </div>
+        </div>
+
+        <!-- Function Nesting Level Visualisation-->
+        <div class="card">
+            <div class="card-header" id="headingSix" style="height: 50px;">
+                <h2 class="mb-0">
+                <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
+                    Function Nesting Level Visualisation
+                </button>
+                </h2>
+            </div>
+            <div id="collapseSix" class="collapse" aria-labelledby="headingSix" data-parent="#accordionExample">
+                <div class="card-body">
+                    <script>
+                        var treeData = 
+                        [
+                            {
+                            "name": "{{fileName}}",
+                            "parent": "null",
+                            "children": {{ nestedTreeList|safe }} 
+                            }
+                        ];
+
+                        // ************** Generate the tree diagram	 *****************
+                        var margin = {top: 20, right: 120, bottom: 20, left: 120},
+                            width = 960 - margin.right - margin.left,
+                            height = 500 - margin.top - margin.bottom;
+                            
+                        var i = 0,
+                            duration = 750,
+                            root;
+
+                        var tree = d3.layout.tree()
+                            .size([height, width]);
+
+                        var diagonal = d3.svg.diagonal()
+                            .projection(function(d) { return [d.y, d.x]; });
+
+                        var svg = d3.select("body").append("svg")
+                            .attr("width", width + margin.right + margin.left)
+                            .attr("height", height + margin.top + margin.bottom)
+                            .append("g")
+                            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+                        root = treeData[0];
+                        root.x0 = height / 2;
+                        root.y0 = 0;
+                            
+                        update(root);
+
+                        d3.select(self.frameElement).style("height", "500px");
+
+                        function update(source) {
+
+                            // Compute the new tree layout.
+                            var nodes = tree.nodes(root).reverse(),
+                            links = tree.links(nodes);
+
+                            // Normalize for fixed-depth.
+                            nodes.forEach(function(d) { d.y = d.depth * 180; });
+
+                            // Update the nodes…
+                            var node = svg.selectAll("g.node")
+                            .data(nodes, function(d) { return d.id || (d.id = ++i); });
+
+                            // Enter any new nodes at the parent's previous position.
+                            var nodeEnter = node.enter().append("g")
+                            .attr("class", "node")
+                            .attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
+                            .on("click", click);
+
+                            nodeEnter.append("circle")
+                            .attr("r", 1e-6)
+                            .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
+
+                            nodeEnter.append("text")
+                            .attr("x", function(d) { return d.children || d._children ? -13 : 13; })
+                            .attr("dy", ".35em")
+                            .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
+                            .text(function(d) { return d.name; })
+                            .style("fill-opacity", 1e-6);
+
+                            // Transition nodes to their new position.
+                            var nodeUpdate = node.transition()
+                            .duration(duration)
+                            .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
+
+                            nodeUpdate.select("circle")
+                            .attr("r", 10)
+                            .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
+
+                            nodeUpdate.select("text")
+                            .style("fill-opacity", 1);
+
+                            // Transition exiting nodes to the parent's new position.
+                            var nodeExit = node.exit().transition()
+                            .duration(duration)
+                            .attr("transform", function(d) { return "translate(" + source.y + "," + source.x + ")"; })
+                            .remove();
+
+                            nodeExit.select("circle")
+                            .attr("r", 1e-6);
+
+                            nodeExit.select("text")
+                            .style("fill-opacity", 1e-6);
+
+                            // Update the links…
+                            var link = svg.selectAll("path.link")
+                            .data(links, function(d) { return d.target.id; });
+
+                            // Enter any new links at the parent's previous position.
+                            link.enter().insert("path", "g")
+                            .attr("class", "link")
+                            .attr("d", function(d) {
+                            var o = {x: source.x0, y: source.y0};
+                            return diagonal({source: o, target: o});
+                            });
+
+                            // Transition links to their new position.
+                            link.transition()
+                            .duration(duration)
+                            .attr("d", diagonal);
+
+                            // Transition exiting nodes to the parent's new position.
+                            link.exit().transition()
+                            .duration(duration)
+                            .attr("d", function(d) {
+                            var o = {x: source.x, y: source.y};
+                            return diagonal({source: o, target: o});
+                            })
+                            .remove();
+
+                            // Stash the old positions for transition.
+                            nodes.forEach(function(d) {
+                            d.x0 = d.x;
+                            d.y0 = d.y;
+                            });
+                        }
+
+                        // Toggle children on click.
+                        function click(d) {
+                            if (d.children) {
+                            d._children = d.children;
+                            d.children = null;
+                            } else {
+                            d.children = d._children;
+                            d._children = null;
+                            }
+                            update(d);
+                        }
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+</body>
+</html>
